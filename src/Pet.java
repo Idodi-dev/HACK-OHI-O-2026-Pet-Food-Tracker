@@ -3,19 +3,42 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class Pet {
-    User user;
-    String name;
-    double foodWeightPerServing;
-    int servingsPerDay;
-    Animal animal;
-    PetFood foodType;
-    int servingsToday;
-    double animalWeight;
-    int age;
-    double targetWeight;
-    boolean reachedFoodLimit;
-    ArrayList<Reminder> reminders = new ArrayList<>();
-    LocalDateTime lastFed = LocalDateTime.now();
+    private User user;
+    private String name;
+    private double foodWeightPerServing;
+    private int servingsPerDay;
+    private Animal animal;
+    private PetFood foodType;
+    private int servingsToday;
+    private double animalWeight;
+    private int age;
+    private double targetWeight;
+    private boolean reachedFoodLimit;
+    private ArrayList<Reminder> reminders = new ArrayList<>();
+    private LocalDateTime lastFed = LocalDateTime.now();
+
+
+    
+    public Pet(User user, String name, double foodWeightPerServing, int servingsPerDay, Pet.Animal animal,
+            PetFood foodType, int servingsToday, double animalWeight, int age, double targetWeight,
+            boolean reachedFoodLimit, ArrayList<Reminder> reminders) {
+        this.user = user;
+        this.name = name;
+        this.foodWeightPerServing = foodWeightPerServing;
+        this.servingsPerDay = servingsPerDay;
+        this.animal = animal;
+        this.foodType = foodType;
+        this.servingsToday = servingsToday;
+        this.animalWeight = animalWeight;
+        this.age = age;
+        this.targetWeight = targetWeight;
+        this.reachedFoodLimit = reachedFoodLimit;
+        this.reminders = reminders;
+    }
+
+    public Pet() {
+
+    }
 
     public void meal() {
         lastFed = LocalDateTime.now();
@@ -56,7 +79,7 @@ public class Pet {
 
 
     public void setServingsPerDay(int servingsPerDay) {
-        ServingsPerDay = servingsPerDay;
+        this.servingsPerDay = servingsPerDay;
     }
 
 
@@ -101,7 +124,7 @@ public class Pet {
 
 
     public int getServingsPerDay() {
-        return ServingsPerDay;
+        return servingsPerDay;
     }
 
 
@@ -154,6 +177,11 @@ public class Pet {
     enum Animal {
         dog, cat, lizard, rabbit, hamster, bird, gerbil, cow, duck, chicken, 
         sheep, pig;
+    }
+
+    @Override 
+    public String toString() {
+        return this.name;
     }
     
 }

@@ -1,10 +1,22 @@
 public class PetFood {
-    String productBrand;
-    boolean isWet;
-    double totalWeight;
-    double currentWeight;
-    int daysLeftUntilRefill;
+    private String productBrand;
+    private boolean isWet;
+    private double totalWeight;
+    private double currentWeight;
+    private int daysLeftUntilRefill;
+
+    public PetFood() {
+
+    }
     
+    public PetFood(String productBrand, boolean isWet, double totalWeight, double currentWeight,
+            int daysLeftUntilRefill) {
+        this.productBrand = productBrand;
+        this.isWet = isWet;
+        this.totalWeight = totalWeight;
+        this.currentWeight = currentWeight;
+        this.daysLeftUntilRefill = daysLeftUntilRefill;
+    }
     public String getProductBrand() {
         return productBrand;
     }

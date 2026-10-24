@@ -3,12 +3,22 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class User {
-    String username;
-    String password;
-    ArrayList<Pet> userPets = new ArrayList<>();
-    ArrayList<PetFood> foodTypes = new ArrayList<>();
-    LocalDateTime lastUpdateTime = LocalDateTime.now();
-    ArrayList<Reminder> reminders = new ArrayList<>();
+    private Database database;
+    private String username;
+    private String password;
+    private ArrayList<Pet> userPets = new ArrayList<>();
+    private ArrayList<PetFood> foodTypes = new ArrayList<>();
+    private LocalDateTime lastUpdateTime = LocalDateTime.now();
+    private ArrayList<Reminder> reminders = new ArrayList<>();
+
+    public User() {
+
+    }
+
+    public User(Database database, String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
 
     public void updateTime() {
         this.lastUpdateTime = LocalDateTime.now();
@@ -34,7 +44,11 @@ public class User {
     }
 
     public void updateDatabase() {
-        Database.update();
+        database.update();
+    }
+
+    public void newPet(Pet pet) {
+        this.userPets.add(pet);
     }
 
     public LocalDateTime getLocalDateTime() {
