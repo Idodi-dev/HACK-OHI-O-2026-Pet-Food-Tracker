@@ -1,8 +1,12 @@
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+
 public class Pet {
     User user;
     String name;
     double foodWeightPerServing;
-    int ServingsPerDay;
+    int servingsPerDay;
     Animal animal;
     PetFood foodType;
     int servingsToday;
@@ -10,10 +14,19 @@ public class Pet {
     int age;
     double targetWeight;
     boolean reachedFoodLimit;
+    ArrayList<Reminder> reminders = new ArrayList<>();
+    LocalDateTime lastFed = LocalDateTime.now();
 
     public void meal() {
-        reachedFoodLimit = true;
-        ...
+        lastFed = LocalDateTime.now();
+        servingsToday++;
+        if(servingsPerDay == servingsToday) {
+            setReachedFoodLimit(true);
+        }
+    }
+
+    public void newDay() {
+        servingsToday = 0;
     }
 
     public boolean isReachedFoodLimit() {
@@ -119,6 +132,22 @@ public class Pet {
 
     public double getTargetWeight() {
         return targetWeight;
+    }
+
+    public ArrayList<Reminder> getReminders() {
+        return reminders;
+    }
+
+    public void setReminders(ArrayList<Reminder> reminders) {
+        this.reminders = reminders;
+    }
+
+    public LocalDateTime getLastFed() {
+        return lastFed;
+    }
+
+    public void setLastFed(LocalDateTime lastFed) {
+        this.lastFed = lastFed;
     }
 
 
