@@ -1,7 +1,104 @@
 <!DOCTYPE html>
 <html>
+    <!--Full Javascript Logic-->
+    <script>
+        function SignIn() {
+            let user1 = "Glenn";
+            let password1 = "1234";
+            let usertest1 = document.getElementById("username").value;
+            let paswordtest1 = document.getElementById("password").value;
+            let visibility = document.getElementById("SignInPanel");
+
+            if (usertest1 == user1 && paswordtest1 == password1){
+                document.getElementById("test1").innerHTML = "correct";
+                visibility.style.display = "none";
+            }
+            else{
+                document.getElementById("test1").innerHTML = "Username or password incorrect";
+            }
+        }
+        function FoodSupply(){
+
+        }
+        
+    </script>
+    <!--HTML Formating-->
+    <Style>
+        #SignInPanel, .flip{
+            padding: 10px;
+            text-align: center;
+            background-color: #04AA6D;
+            color: white;
+            border: solid 1px #a6d8a8;
+            margin: auto;
+            cursor:pointer;
+        }
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }       
+
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </Style>
+    <!--Main HTML and visuals-->
     <body>
+        <!--SIGN IN PAGE-->
+        <center>
+        <!--WEBSITE TITLE-->
         <h1 style="color:burlywood">Pet Food Tracker</h1>
-        <p><strong>Test#4</strong><br>Test #3</p>
+
+        <!--Sign in-->
+        <div id = "SignInPanel">
+            <h2>Sign in:</h2>
+            <form>
+                <p id = test1>Test1</p>
+                <p id = "test2">test2</p>
+                <p id = "test3">Test3</p>
+                <label for="username">Username:</label><br>
+                <input type="text" id="username" name="username"><br>
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password"><br><br>
+                <button type="button" onclick="SignIn()">Sign in</button>
+            </form>
+        </div>
+        <label for="cars">Choose a car:</label>
+
+        <!--<select name="cars" id="cars">
+            <option value="volvo">Volvo</option>
+            <option value="saab">Saab</option>
+            <option value="mercedes">Mercedes</option>
+            <option value="audi">Audi</option>
+        </select>-->
+
+        <!--PET CHECKLIST-->
+        <h2 style="color:burlywood">Current Pet Status</h2>
+        <Table>
+            <!--Row 1-->
+            <tr>
+                <Th>Pet Name</Th>
+                <Th>Pet Species</Th>
+                <Th>Pet Food</Th>
+                <Th>Needs fed?</Th>
+                <Th>Food supply low?</Th>
+            </tr>
+            <!--Row 2-->
+            <tr>
+                <Td>Catfish</Td>
+                <Td>Cat</Td>
+                <Td>Generic Kibble</Td>
+                <Td>No</Td>
+                <Td>Yes</Td>
+            </tr>
+        </Table>
+        </center>
     </body>
 </html>
