@@ -1,5 +1,6 @@
-
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
 public class Pet {
@@ -16,6 +17,8 @@ public class Pet {
     private boolean reachedFoodLimit;
     private ArrayList<Reminder> reminders = new ArrayList<>();
     private LocalDateTime lastFed = LocalDateTime.now();
+    private Duration maxTimeBetweenFeedings;
+    private final Duration feedingWindow = Duration.of(12, ChronoUnit.HOURS);
 
 
     
@@ -34,6 +37,8 @@ public class Pet {
         this.targetWeight = targetWeight;
         this.reachedFoodLimit = reachedFoodLimit;
         this.reminders = reminders;
+
+        this.maxTimeBetweenFeedings = Duration.of(feedingWindow.toMinutes()/servingsPerDay, ChronoUnit.MINUTES);
     }
 
     public Pet() {
@@ -45,6 +50,14 @@ public class Pet {
         servingsToday++;
         if(servingsPerDay == servingsToday) {
             setReachedFoodLimit(true);
+        }
+
+        this.foodType.updateSupply(this.foodWeightPerServing);
+    }
+
+    public void update(){
+        if (Duration.between(lastFed, LocalDateTime.now()).toMinutes() > this.maxTimeBetweenFeedings.toMinutes()) {
+            ReminderManager.createFeedReminder(this.name);
         }
     }
 

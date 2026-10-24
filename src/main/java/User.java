@@ -1,4 +1,4 @@
-import java.time.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -9,7 +9,7 @@ public class User {
     private ArrayList<Pet> userPets = new ArrayList<>();
     private ArrayList<PetFood> foodTypes = new ArrayList<>();
     private LocalDateTime lastUpdateTime = LocalDateTime.now();
-    private ArrayList<Reminder> reminders = new ArrayList<>();
+    private ReminderStorage reminderStorage = new ReminderStorage();
 
     public User() {
 

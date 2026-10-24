@@ -3,8 +3,10 @@ import java.time.LocalDateTime;
 public class Reminder {
     private reminderType type;
     private String petName;
-    private String foodName;
     private LocalDateTime time;
+
+    private String foodName;
+    private int daysUntilEmpty;
 
     public Reminder(LocalDateTime reminderTime){
         this.time = reminderTime;
@@ -16,9 +18,10 @@ public class Reminder {
         this.petName = petName;
     }
 
-    public void setAsBuyFoodReminder(String petName){
+    public void setAsBuyFoodReminder(String petName, int daysUntilEmpty){
         this.type = reminderType.BUYFOOD;
         this.petName = petName;
+        this.daysUntilEmpty = daysUntilEmpty;
     }
 
     public void setAsVetVisitReminder(String petName){
@@ -33,7 +36,7 @@ public class Reminder {
 
         return switch (this.type) {
             case FEEDPET -> this.petName + " is due to be fed.";
-            case BUYFOOD -> this.foodName + " is running out!";
+            case BUYFOOD -> this.foodName + " will be out in " + daysUntilEmpty + " days!";
             case VETVISIT -> this.petName + " is due for a vet check up.";
             default -> "Generic Reminder";
         };

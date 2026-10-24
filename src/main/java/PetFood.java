@@ -4,6 +4,7 @@ public class PetFood {
     private double totalWeight;
     private double currentWeight;
     private int daysLeftUntilRefill;
+    private double totalDailyUsageWeight;
 
     public PetFood() {
 
@@ -16,7 +17,24 @@ public class PetFood {
         this.totalWeight = totalWeight;
         this.currentWeight = currentWeight;
         this.daysLeftUntilRefill = daysLeftUntilRefill;
+
+        totalDailyUsageWeight = 0;
     }
+
+    public void updateSupply(double amount){
+        this.currentWeight -= amount;
+
+        if (this.currentWeight < 0) {
+            this.currentWeight = 0;
+        }
+
+        daysLeftUntilRefill = (int) Math.round(totalWeight/totalDailyUsageWeight);
+    }
+
+    public void updateUsage(double amount) {
+        this.totalDailyUsageWeight += amount;
+    }
+
     public String getProductBrand() {
         return productBrand;
     }

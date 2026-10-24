@@ -2,21 +2,21 @@ import java.time.LocalDateTime;
 
 public class ReminderFactory {
 
-    public Reminder createFeedReminder(String petName){
+    public static Reminder createFeedReminder(String petName){
         Reminder reminder = new Reminder(LocalDateTime.now());
         reminder.setAsFeedReminder(petName);
 
         return reminder;
     }
 
-    public Reminder createBuyFoodReminder(String foodName){
+    public static Reminder createBuyFoodReminder(String foodName, int daysUntilEmpty){
         Reminder reminder = new Reminder(LocalDateTime.now());
-        reminder.setAsBuyFoodReminder(foodName);
+        reminder.setAsBuyFoodReminder(foodName, daysUntilEmpty);
 
         return reminder;
     }
 
-    public Reminder createVetVisitReminder(String petName){
+    public static Reminder createVetVisitReminder(String petName){
         Reminder reminder = new Reminder(LocalDateTime.now());
         reminder.setAsVetVisitReminder(petName);
 
