@@ -22,10 +22,17 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- 2. Spring Boot Core Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+            <version>4.1.1</version>
         </dependency>
 
         <!-- 3. Spring Boot JDBC Starter (Includes HikariCP connection pooling) -->
@@ -45,6 +52,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>4.2.0-RC1</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
