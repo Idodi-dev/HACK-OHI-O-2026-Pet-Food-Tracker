@@ -1,9 +1,27 @@
+package com.hackohio.app;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity 
 public class PetFood {
+    @Id 
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id;
+    @Column
     private String productBrand;
+    @Column
     private boolean isWet;
+    @Column
     private double totalWeight;
+    @Column
     private double currentWeight;
+    @Column
     private int daysLeftUntilRefill;
+    @Column
     private double totalDailyUsageWeight;
 
     public PetFood() {

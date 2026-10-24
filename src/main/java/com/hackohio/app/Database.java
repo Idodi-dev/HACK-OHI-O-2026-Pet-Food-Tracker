@@ -1,7 +1,9 @@
+package com.hackohio.app;
+
 public class Database {
     
 
-    public void update() {
+    public static void update() {
         System.out.println("Updated");
     }
     

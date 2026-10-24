@@ -1,23 +1,50 @@
+package com.hackohio.app;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
+@Entity 
 public class Pet {
+    @Id 
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id; 
+    @Column 
     private User user;
+    @Column
     private String name;
+    @Column
     private double foodWeightPerServing;
+    @Column
     private int servingsPerDay;
+    @Column
     private Animal animal;
+    @OneToOne
     private PetFood foodType;
+    @Column
     private int servingsToday;
+    @Column
     private double animalWeight;
+    @Column
     private int age;
+    @Column
     private double targetWeight;
+    @Column
     private boolean reachedFoodLimit;
     private ArrayList<Reminder> reminders = new ArrayList<>();
+    @Column
     private LocalDateTime lastFed = LocalDateTime.now();
+    @Column
     private Duration maxTimeBetweenFeedings;
+    @Column
     private final Duration feedingWindow = Duration.of(12, ChronoUnit.HOURS);
 
 

@@ -1,3 +1,5 @@
+package com.hackohio.app;
+
 import java.util.ArrayList;
 
 import org.springframework.boot.SpringApplication;

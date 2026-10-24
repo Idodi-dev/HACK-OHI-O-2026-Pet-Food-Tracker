@@ -1,7 +1,10 @@
+package com.hackohio.app;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,13 +16,14 @@ public class User {
     @Id 
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
-    private Database database;
+    @Column
     private String username;
+    @Column
     private String password;
     private ArrayList<Pet> userPets = new ArrayList<>();
     private ArrayList<PetFood> foodTypes = new ArrayList<>();
+    @Column
     private LocalDateTime lastUpdateTime = LocalDateTime.now();
-    private ReminderStorage reminderStorage = new ReminderStorage();
 
     public User() {
 
@@ -36,7 +40,7 @@ public class User {
 
     public void update() {
         updateTime();
-        updateDatabase();
+        Database.update();
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -51,10 +55,6 @@ public class User {
             Pet currPet = iterator.next();
             currPet.newDay();
         }
-    }
-
-    public void updateDatabase() {
-        database.update();
     }
 
     public void newPet(Pet pet) {
@@ -92,5 +92,11 @@ public class User {
         this.foodTypes = foodTypes;
     }
 
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
