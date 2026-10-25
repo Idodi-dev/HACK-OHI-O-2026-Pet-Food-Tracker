@@ -1,5 +1,33 @@
 var PopupOpen; 
 
+async function createUser(Username, Password) {
+  const url = 'localhost:8080/api/users';
+  const payload = { 
+    username: Username, 
+    password: Password 
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST', // Specifies the request type
+      headers: {
+        'Content-Type': 'application/json' // Tells the server to expect JSON
+      },
+      body: JSON.stringify(payload) // Converts JavaScript object to a JSON string
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json(); // Parses the JSON response body
+    console.log('Success:', data);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+
 function SignIn() { 
 
         let user1 = "Glenn"; 
@@ -21,6 +49,8 @@ function SignIn() {
             document.getElementById("SignInPlease").innerHTML = "correct"; 
 
             visibility.style.display = "none"; 
+
+            createUser(user1, password1)
 
         } 
 
