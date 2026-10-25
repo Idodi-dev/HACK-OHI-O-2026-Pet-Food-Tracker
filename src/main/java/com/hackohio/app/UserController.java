@@ -1,10 +1,13 @@
 package com.hackohio.app;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import java.util.List;
 
 // CLASSES FOR RequestBody
 class UserData {
@@ -48,6 +51,18 @@ public class UserController {
         User savedUser = userRepository.save(createdUser);
 
         return ResponseEntity.ok(savedUser);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<List<User>> getUser() {
+        List<User> users = userRepository.findAll();
+        
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Optional: Returns 204 No Content if empty
+        }
+        
+        return ResponseEntity.ok(users); 
+        
     }
     
 }
