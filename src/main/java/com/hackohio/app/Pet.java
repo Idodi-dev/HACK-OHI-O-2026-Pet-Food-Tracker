@@ -7,18 +7,30 @@ import java.util.ArrayList;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 
 @Entity 
 public class Pet {
-    @Id 
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long id; 
-    @Column 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userID", nullable = false) // Foreign key column
     private User user;
+
+    // Getter and Setter for user
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    
+    @Column
+    private long userID;
     @Column
     private String name;
     @Column
@@ -68,6 +80,18 @@ public class Pet {
         this.maxTimeBetweenFeedings = Duration.of(feedingWindow.toMinutes()/servingsPerDay, ChronoUnit.MINUTES);
     }
 
+    public Pet(long userID, String name, double foodWeightPerServing, int servingsPerDay, String foodNaem, double animalWeight, int age, double targetWeight) {
+        this.userID = userID;
+        this.name = name;
+        this.foodWeightPerServing = foodWeightPerServing;
+        this.servingsPerDay = servingsPerDay;
+        this.animalWeight = animalWeight;
+        this.age = age;
+        this.targetWeight = targetWeight;
+
+        this.maxTimeBetweenFeedings = Duration.of(feedingWindow.toMinutes()/servingsPerDay, ChronoUnit.MINUTES);
+    }
+
     public Pet() {
 
     }
@@ -98,14 +122,6 @@ public class Pet {
 
     public void setReachedFoodLimit(boolean reachedFoodLimit) {
         this.reachedFoodLimit = reachedFoodLimit;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public void setName(String name) {

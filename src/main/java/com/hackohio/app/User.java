@@ -1,27 +1,34 @@
 package com.hackohio.app;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity 
+@Table(name = "users") // 'user' is a reserved keyword in PostgreSQL, so use 'users'
 public class User {
 
     @Id 
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.SEQUENCE) // Recommended for Postgres
     private Long id;
-    @Column
+    
+    @Column(unique = true)
     private String username;
+    
     @Column
     private String password;
-    private ArrayList<Pet> userPets = new ArrayList<>();
-    private ArrayList<PetFood> foodTypes = new ArrayList<>();
+
+    //@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    //private List<Pet> userPets = new ArrayList<>();
+
+    //@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    //private List<PetFood> foodTypes = new ArrayList<>();
+
     @Column
     private LocalDateTime lastUpdateTime = LocalDateTime.now();
 
@@ -29,7 +36,7 @@ public class User {
 
     }
 
-    public User(Database database, String username, String password) {
+    public User(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -45,10 +52,11 @@ public class User {
         LocalDateTime now = LocalDateTime.now();
 
         if(now.getDayOfYear() != lastUpdateTime.getDayOfYear() && now.getYear() != now.getYear()) {
-            newDayUpdate();
+            //newDayUpdate();
         }
     }
 
+    /*
     public void newDayUpdate() {
         Iterator<Pet> iterator = userPets.iterator();
         while(iterator.hasNext()) {
@@ -60,6 +68,7 @@ public class User {
     public void newPet(Pet pet) {
         this.userPets.add(pet);
     }
+    */
 
     public LocalDateTime getLocalDateTime() {
         return lastUpdateTime;
@@ -79,6 +88,7 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
+    /* 
     public ArrayList<Pet> getUserPets() {
         return userPets;
     }
@@ -91,6 +101,7 @@ public class User {
     public void setFoodTypes(ArrayList<PetFood> foodTypes) {
         this.foodTypes = foodTypes;
     }
+    */
 
     public Long getId() {
         return id;
