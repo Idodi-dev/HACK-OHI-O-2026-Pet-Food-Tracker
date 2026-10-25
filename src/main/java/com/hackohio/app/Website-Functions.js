@@ -1,7 +1,7 @@
 var PopupOpen; 
 
 async function createUser(Username, Password) {
-  const url = 'localhost:8080/api/users';
+  const url = 'http://localhost:8080/api/users';
   const payload = { 
     username: Username, 
     password: Password 
@@ -50,7 +50,7 @@ function SignIn() {
 
             visibility.style.display = "none"; 
 
-            createUser(user1, password1)
+            createUser(user1, password1);
 
         } 
 

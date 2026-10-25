@@ -1,13 +1,13 @@
 package com.hackohio.app;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
-import java.util.List;
 
 // CLASSES FOR RequestBody
 class UserData {
@@ -53,7 +53,7 @@ public class UserController {
         return ResponseEntity.ok(savedUser);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping
     public ResponseEntity<List<User>> getUser() {
         List<User> users = userRepository.findAll();
         
