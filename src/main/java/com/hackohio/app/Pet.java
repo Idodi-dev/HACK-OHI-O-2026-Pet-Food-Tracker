@@ -30,8 +30,6 @@ public class Pet {
     public void setUser(User user) { this.user = user; }
     
     @Column
-    private long userID;
-    @Column
     private String name;
     @Column
     private double foodWeightPerServing;
@@ -80,8 +78,7 @@ public class Pet {
         this.maxTimeBetweenFeedings = Duration.of(feedingWindow.toMinutes()/servingsPerDay, ChronoUnit.MINUTES);
     }
 
-    public Pet(long userID, String name, double foodWeightPerServing, int servingsPerDay, String foodNaem, double animalWeight, int age, double targetWeight) {
-        this.userID = userID;
+    public Pet(String name, double foodWeightPerServing, int servingsPerDay, String foodNaem, double animalWeight, int age, double targetWeight) {
         this.name = name;
         this.foodWeightPerServing = foodWeightPerServing;
         this.servingsPerDay = servingsPerDay;

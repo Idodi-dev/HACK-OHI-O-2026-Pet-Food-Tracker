@@ -17,7 +17,7 @@ public class PetFood {
     
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id", nullable = false) // Foreign key column
+    @JoinColumn(name = "userID", nullable = false) // Foreign key column
     private User user;
 
     // Getter and Setter for user
@@ -25,7 +25,7 @@ public class PetFood {
     public void setUser(User user) { this.user = user; }
 
     @Column
-    private String productBrand;
+    private String foodName;
     @Column
     private boolean isWet;
     @Column
@@ -43,7 +43,7 @@ public class PetFood {
     
     public PetFood(String productBrand, boolean isWet, double totalWeight, double currentWeight,
             int daysLeftUntilRefill) {
-        this.productBrand = productBrand;
+        this.foodName = productBrand;
         this.isWet = isWet;
         this.totalWeight = totalWeight;
         this.currentWeight = currentWeight;
@@ -67,10 +67,10 @@ public class PetFood {
     }
 
     public String getProductBrand() {
-        return productBrand;
+        return foodName;
     }
     public void setProductBrand(String productBrand) {
-        this.productBrand = productBrand;
+        this.foodName = productBrand;
     }
     public boolean isWet() {
         return isWet;

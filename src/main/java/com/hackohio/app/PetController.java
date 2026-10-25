@@ -95,7 +95,7 @@ public class PetController {
 
     @PostMapping
     public ResponseEntity<String> addPet(@PathVariable Long userId, @RequestBody PetData newPet) {
-        Pet createdPet = new Pet(userId, newPet.getName(), newPet.getFoodWeightPerServing(), 
+        Pet createdPet = new Pet(newPet.getName(), newPet.getFoodWeightPerServing(), 
         newPet.getServingsPerDay(), newPet.getFoodName(), newPet.getAnimalWeight(), newPet.getAge(), newPet.getTargetWeight());
 
         //petRepository.save(createdPet, userId);
