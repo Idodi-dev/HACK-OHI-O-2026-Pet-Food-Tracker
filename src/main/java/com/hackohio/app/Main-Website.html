@@ -1,104 +1,387 @@
-<!DOCTYPE html>
-<html>
-    <!--Full Javascript Logic-->
-    <script>
-        function SignIn() {
-            let user1 = "Glenn";
-            let password1 = "1234";
-            let usertest1 = document.getElementById("username").value;
-            let paswordtest1 = document.getElementById("password").value;
-            let visibility = document.getElementById("SignInPanel");
+ 
 
-            if (usertest1 == user1 && paswordtest1 == password1){
-                document.getElementById("test1").innerHTML = "correct";
-                visibility.style.display = "none";
-            }
-            else{
-                document.getElementById("test1").innerHTML = "Username or password incorrect";
-            }
-        }
-        function FoodSupply(){
+<!DOCTYPE html> 
 
-        }
-        
-    </script>
-    <!--HTML Formating-->
-    <Style>
-        #SignInPanel, .flip{
-            padding: 10px;
-            text-align: center;
-            background-color: #04AA6D;
-            color: white;
-            border: solid 1px #a6d8a8;
-            margin: auto;
-            cursor:pointer;
-        }
-        table {
-            font-family: arial, sans-serif;
-            border-collapse: collapse;
-            width: 100%;
-        }       
+<html> 
+    
+    <!--Full Javascript Logic--> 
 
-        td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-        }
+    <script src="Website-Functions.js"></script>
 
-        tr:nth-child(even) {
-            background-color: #dddddd;
-        }
-    </Style>
-    <!--Main HTML and visuals-->
-    <body>
-        <!--SIGN IN PAGE-->
-        <center>
-        <!--WEBSITE TITLE-->
-        <h1 style="color:burlywood">Pet Food Tracker</h1>
+    <!--HTML Formating--> 
 
-        <!--Sign in-->
-        <div id = "SignInPanel">
-            <h2>Sign in:</h2>
-            <form>
-                <p id = test1>Test1</p>
-                <p id = "test2">test2</p>
-                <p id = "test3">Test3</p>
-                <label for="username">Username:</label><br>
-                <input type="text" id="username" name="username"><br>
-                <label for="password">Password:</label><br>
-                <input type="password" id="password" name="password"><br><br>
-                <button type="button" onclick="SignIn()">Sign in</button>
-            </form>
-        </div>
-        <label for="cars">Choose a car:</label>
+    <!--<Style> 
 
-        <!--<select name="cars" id="cars">
-            <option value="volvo">Volvo</option>
-            <option value="saab">Saab</option>
-            <option value="mercedes">Mercedes</option>
-            <option value="audi">Audi</option>
-        </select>-->
+        #SignInPanel, .flip{ 
 
-        <!--PET CHECKLIST-->
-        <h2 style="color:burlywood">Current Pet Status</h2>
-        <Table>
-            <!--Row 1-->
-            <tr>
-                <Th>Pet Name</Th>
-                <Th>Pet Species</Th>
-                <Th>Pet Food</Th>
-                <Th>Needs fed?</Th>
-                <Th>Food supply low?</Th>
-            </tr>
-            <!--Row 2-->
-            <tr>
-                <Td>Catfish</Td>
-                <Td>Cat</Td>
-                <Td>Generic Kibble</Td>
-                <Td>No</Td>
-                <Td>Yes</Td>
-            </tr>
-        </Table>
-        </center>
-    </body>
-</html>
+            padding: 10px; 
+
+            text-align: center; 
+
+            background-color: #04AA6D; 
+
+            color: white; 
+
+            border: solid 1px #a6d8a8; 
+
+            margin: auto; 
+
+            cursor:pointer; 
+
+            color:#55de59; 
+
+        } 
+
+        table { 
+
+            font-family: "Comic Sans MS"; 
+
+            border-collapse: collapse; 
+
+            width: 100%; 
+
+            color:#a1a3a2; 
+
+        }        
+
+ 
+
+        td, th { 
+
+        border: 1px solid #dddddd; 
+
+        text-align: left; 
+
+        padding: 8px; 
+
+        } 
+
+ 
+
+        tr:nth-child(even) { 
+
+            background-color: #fe0101; 
+
+        } 
+
+    </Style>--> 
+
+    <Style> 
+
+ 
+
+        /* BEGIN SIGN IN PANEL FORMATING */ 
+
+ 
+
+        #SignInPanel, .flip{ 
+
+            padding: 10px; 
+
+            text-align: center; 
+
+            background-color: #04AA6D; 
+
+            color: white; 
+
+            border: solid 1px #a6d8a8; 
+
+            margin: auto; 
+
+            cursor:pointer; 
+
+        } 
+
+ 
+
+        /* END SIGN IN PANEL FORMATING */ 
+
+ 
+
+        /* BEGIN TABLE FORMATING*/ 
+
+ 
+
+        table {  
+
+            font-family: arial, sans-serif;  
+
+            border-collapse: collapse; 
+
+            width: 100%; 
+
+            color:#000000; 
+
+        }        
+
+ 
+
+        td, th { 
+
+        border: 1px solid #dddddd; 
+
+        text-align: left; 
+
+        padding: 8px; 
+
+        } 
+
+ 
+
+        tr:nth-child(even) { 
+
+            background-color: #dddddd; 
+
+        } 
+
+ 
+
+        /* END TABLE FORMATING */ 
+
+ 
+
+        /* ADD PET POPUP FORMAT */ 
+
+ 
+
+        /* Popup container - can be anything you want */ 
+
+        .popup { 
+
+            position: relative; 
+
+            display: inline-block; 
+
+            cursor: pointer; 
+
+            -webkit-user-select: none; 
+
+            -moz-user-select: none; 
+
+            -ms-user-select: none; 
+
+            user-select: none; 
+
+        } 
+
+ 
+
+        /* The actual popup */ 
+
+        .popup .popuptext { 
+
+            visibility: hidden; 
+
+            width: 160px; 
+
+            background-color: #555; 
+
+            color: #fff; 
+
+            text-align: center; 
+
+            border-radius: 6px; 
+
+            padding: 8px 0; 
+
+            position: absolute; 
+
+            z-index: 1; 
+
+            bottom: 125%; 
+
+            left: 50%; 
+
+            margin-left: -80px; 
+
+        } 
+
+ 
+
+        /* Popup arrow */ 
+
+        .popup .popuptext::after { 
+
+            content: ""; 
+
+            position: absolute; 
+
+            top: 100%; 
+
+            left: 50%; 
+
+            margin-left: -5px; 
+
+            border-width: 5px; 
+
+            border-style: solid; 
+
+            border-color: #555 transparent transparent transparent; 
+
+        } 
+
+ 
+
+        /* Toggle this class - hide and show the popup */ 
+
+        .popup .show { 
+
+            visibility: visible; 
+
+            -webkit-animation: fadeIn 1s; 
+
+            animation: fadeIn 1s; 
+
+        } 
+
+ 
+
+        /* Add animation (fade in the popup) */ 
+
+        @-webkit-keyframes fadeIn { 
+
+            from {opacity: 0;}  
+
+            to {opacity: 1;} 
+
+        } 
+
+ 
+
+        @keyframes fadeIn { 
+
+            from {opacity: 0;} 
+
+            to {opacity:1 ;} 
+
+        } 
+
+ 
+
+        /* END ADD PET POPUP FORMATING */ 
+
+    </Style> 
+
+    <!--Main HTML and visuals--> 
+
+    <body> 
+
+        <!--SIGN IN PAGE--> 
+
+        <center> 
+
+         
+
+        <!--WEBSITE TITLE--> 
+
+        <h1 style="color:burlywood">Pet Food Tracker</h1> 
+
+ 
+
+        <!--Sign in--> 
+
+        <div id = "SignInPanel"> 
+
+            <h2>Sign in:</h2> 
+
+            <form> 
+
+                <p id = SignInPlease>Please Sign In</p> 
+
+                <label for="username">Username:</label><br> 
+
+                <input type="text" id="username" name="username"><br> 
+
+                <label for="password">Password:</label><br> 
+
+                <input type="password" id="password" name="password"><br><br> 
+
+                <button type="button" onclick="SignIn()">Sign in</button> 
+
+            </form> 
+
+        </div> 
+
+ 
+
+        <!-- PET STATUS TABLES --> 
+
+        <div id="PetAttributes"> 
+
+            <table> 
+
+                <td>Pet Name</td> 
+
+                <td>Pet Species</td> 
+
+                <td>Food type</td> 
+
+                <td>Needs fed</td> 
+
+                <td>Food supply low</td> 
+
+            </table> 
+
+        </div> 
+
+ 
+
+        <h2 style="color:burlywood">Current Pet Status</h2> 
+
+ 
+
+        <div class="popup" onclick="AddPetPopup()">Click me to turn on the popup! 
+
+        <span class="popuptext" id="myPopup">A Simple Popup! 
+
+         
+
+            <label for="PetName">PetName:</label><br> 
+
+            <input type="text" id="PetName" name="PetName"> 
+
+             
+
+            <label for="PetSpecies">PetName:</label><br> 
+
+            <input type="text" id="PetSpecies" name="PetSpecies"> 
+
+             
+
+        </span> 
+
+        </div> 
+
+        <div type="button" onclick="InputPetInfo()">Pet info entered?</div> 
+
+         
+
+        </center> 
+
+    </body> 
+
+</html> 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
