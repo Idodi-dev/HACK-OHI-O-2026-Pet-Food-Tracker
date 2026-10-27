@@ -19,4 +19,6 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
     // 2. Get a specific pet from the table based on the userid and pet's name populated
     // Returns an Optional in case no pet matches that specific name for that user
     Optional<Pet> findByUserIdAndNameIgnoreCase(Long userId, String name);
+
+    List<Pet> findByUserId(Long userId);
 }

@@ -1,11 +1,17 @@
 package com.hackohio.app;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 
 class PetData {
     private long userId;
@@ -86,21 +92,33 @@ class PetData {
 @RequestMapping("/api/v1/users/{userId}/pets")
 public class PetController {
 
-    private final PetFoodRepository petRepository;
+    private final PetRepository petRepository;
+    private final UserRepository userRepository;
 
     // Inject the repository via constructor
-    public PetController(PetFoodRepository petFoodRepository) {
-        this.petRepository = petFoodRepository;
+    public PetController(PetRepository petRepository, UserRepository userRepository) {
+        this.petRepository = petRepository;
+        this.userRepository = userRepository;
     }
 
     @PostMapping
     public ResponseEntity<String> addPet(@PathVariable Long userId, @RequestBody PetData newPet) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        
         Pet createdPet = new Pet(newPet.getName(), newPet.getFoodWeightPerServing(), 
         newPet.getServingsPerDay(), newPet.getFoodName(), newPet.getAnimalWeight(), newPet.getAge(), newPet.getTargetWeight());
 
-        //petRepository.save(createdPet, userId);
+        createdPet.setUser(user);
+
+        petRepository.save(createdPet);
 
         return ResponseEntity.ok("Pet added successfully.");
     }
+
+    @GetMapping
+    public ResponseEntity<List<Pet>> getPets(@PathVariable Long userId) {
+        return ResponseEntity.ok(petRepository.findByUserId(userId));
+    }
+    
 
 }

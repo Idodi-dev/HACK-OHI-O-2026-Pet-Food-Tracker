@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet Food API Console</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --panel: #ffffff; --ink: #1d1f1c; --muted: #6b6f68; --line: #e3e1da;
+    --accent: #2f7d5b; --accent-ink: #ffffff; --code: #f1efe9;
+    --get: #2b6cb0; --post: #2f7d5b; --put: #b7791f; --del: #c53030;
+    --ok: #2f7d5b; --warn: #b7791f; --err: #c53030;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141613; --panel: #1c1f1b; --ink: #e8e9e4; --muted: #9a9e95; --line: #2d312b;
+      --accent: #4fb185; --accent-ink: #0d1a13; --code: #232722;
+      --get: #63a4ff; --post: #4fb185; --put: #e0a84a; --del: #f07171;
+      --ok: #4fb185; --warn: #e0a84a; --err: #f07171;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+  header {
+    position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+    padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center;
+  }
+  h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  h1 span { color: var(--muted); font-weight: 400; }
+  .spacer { flex: 1; }
+  .inline { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .inline input { width: 220px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+  .dot.ok { background: var(--ok); } .dot.err { background: var(--err); }
+  .chip { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); }
+  .chip.none { color: var(--muted); }
+
+  .banner { margin: 16px 20px 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--warn); color: var(--ink); background: color-mix(in srgb, var(--warn) 10%, transparent); font-size: 13px; }
+  .banner code { font-family: var(--mono); font-size: 12px; }
+  .banner[hidden] { display: none; }
+
+  main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 16px; } header { padding: 12px 16px; } }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+  .card h2 { font-size: 14px; margin: 0 0 2px; }
+  .endpoint { font: 12px var(--mono); color: var(--muted); margin: 0; }
+  .hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+  .hint.warn { color: var(--warn); }
+
+  form, .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin: 10px 0 0; }
+  label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); }
+  label.check { flex-direction: row; align-items: center; gap: 6px; color: var(--ink); padding-bottom: 7px; }
+  input, select, textarea { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; min-width: 0; }
+  input[type=number] { width: 110px; }
+  textarea { font: 12px/1.45 var(--mono); width: 100%; min-height: 110px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  button { font: inherit; font-weight: 550; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button.small { padding: 3px 9px; font-size: 12px; }
+  button:hover { filter: brightness(0.96); }
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  .status { font-size: 12px; min-height: 17px; margin-top: 8px; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--err); }
+
+  .table-wrap { overflow-x: auto; margin-top: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 550; font-size: 12px; }
+  tr.active td { background: color-mix(in srgb, var(--accent) 13%, transparent); }
+  .empty { color: var(--muted); font-size: 13px; padding: 8px 0 0; }
+
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .presets button { font: 11px var(--mono); padding: 3px 8px; }
+
+  .log-card { position: sticky; top: 72px; max-height: calc(100vh - 92px); display: flex; flex-direction: column; }
+  @media (max-width: 900px) { .log-card { position: static; max-height: none; } }
+  .log-head { display: flex; align-items: center; gap: 8px; }
+  .log-head h2 { flex: 1; }
+  #log { overflow: auto; display: flex; flex-direction: column; gap: 6px; margin-top: 10px; min-height: 0; }
+  details.entry { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  details.entry summary { list-style: none; cursor: pointer; display: flex; gap: 8px; align-items: center; padding: 7px 9px; font: 12px var(--mono); }
+  details.entry summary::-webkit-details-marker { display: none; }
+  .m { font-weight: 700; width: 40px; flex: none; }
+  .m.GET { color: var(--get); } .m.POST { color: var(--post); } .m.PUT, .m.PATCH { color: var(--put); } .m.DELETE { color: var(--del); }
+  .pill { font-weight: 700; padding: 1px 6px; border-radius: 5px; flex: none; }
+  .pill.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+  .pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+  .pill.err { color: var(--err); background: color-mix(in srgb, var(--err) 14%, transparent); }
+  .path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .ms { color: var(--muted); flex: none; }
+  .entry-body { padding: 0 9px 9px; }
+  .lbl { font-size: 11px; color: var(--muted); margin: 8px 0 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  pre { margin: 0; padding: 8px 10px; background: var(--code); border-radius: 6px; overflow: auto; font: 12px/1.45 var(--mono); max-height: 320px; white-space: pre-wrap; word-break: break-word; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Pet Food Tracker <span>· API console</span></h1>
+  <div class="inline">
+    <span class="dot" id="conn-dot"></span>
+    <span id="conn-text">Checking…</span>
+  </div>
+  <div class="spacer"></div>
+  <label class="inline">Base URL <input id="base-url" spellcheck="false"></label>
+  <span class="chip none" id="active-chip">No active user</span>
+</header>
+
+<div class="banner" id="cors-banner" hidden>
+  This page isn't being served by your Spring Boot app, so requests are cross-origin. Only <code>UserController</code> has <code>@CrossOrigin</code>, so the <code>/api/v1/…</code> calls will be blocked by CORS.
+  Easiest fix: put this file at <code>src/main/resources/static/index.html</code> and open <code>http://localhost:8080/</code>.
+</div>
+
+<main>
+  <div class="col">
+
+    <!-- USERS -->
+    <section class="card">
+      <h2>Users</h2>
+      <p class="endpoint">POST /api/users · GET /api/users</p>
+      <form id="user-form" autocomplete="off">
+        <label>Username <input name="username" required></label>
+        <label>Password <input name="password" type="text" required></label>
+        <button class="primary" type="submit">Create user</button>
+        <button type="button" id="users-refresh">Refresh list</button>
+      </form>
+      <div class="row">
+        <label>Active user ID <input type="number" id="manual-user-id" min="1" placeholder="e.g. 1"></label>
+        <button type="button" id="manual-user-set">Set</button>
+      </div>
+      <div class="status" id="user-status"></div>
+      <div id="users-table"></div>
+    </section>
+
+    <!-- FOOD -->
+    <section class="card">
+      <h2>Pet food</h2>
+      <p class="endpoint">POST · GET /api/v1/users/{userId}/food[?foodName=]</p>
+      <form id="food-form" autocomplete="off">
+        <label>Product brand <input name="productBrand" required placeholder="DoggieFoo"></label>
+        <label>Total weight <input name="totalWeight" type="number" step="any" min="0" required placeholder="10.5"></label>
+        <label class="check"><input name="wet" type="checkbox"> Wet food</label>
+        <button class="primary" type="submit">Add food</button>
+      </form>
+      <form id="food-search" autocomplete="off">
+        <label>Search by name <input name="q" placeholder="blank = all"></label>
+        <button type="submit">Search</button>
+      </form>
+      <div class="status" id="food-status"></div>
+      <div id="food-table"></div>
+    </section>
+
+    <!-- PETS -->
+    <section class="card">
+      <h2>Pets</h2>
+      <p class="endpoint">POST · GET /api/v1/users/{userId}/pets</p>
+      <form id="pet-form" autocomplete="off">
+        <label>Name <input name="name" required placeholder="Rex"></label>
+        <label>Food name <input name="foodName" list="food-names" placeholder="DoggieFoo"></label>
+        <label>Food / serving <input name="foodWeightPerServing" type="number" step="any" min="0" required placeholder="0.25"></label>
+        <label>Servings / day <input name="servingsPerDay" type="number" min="1" step="1" required placeholder="2"></label>
+        <label>Weight <input name="animalWeight" type="number" step="any" min="0" placeholder="25.6"></label>
+        <label>Age <input name="age" type="number" min="0" step="1" placeholder="5"></label>
+        <label>Target weight <input name="targetWeight" type="number" step="any" min="0" placeholder="21"></label>
+        <button class="primary" type="submit">Add pet</button>
+        <button type="button" id="pets-refresh">List pets</button>
+      </form>
+      <datalist id="food-names"></datalist>
+      <p class="hint warn">Heads up: the POST handler currently has its save commented out, and there's no GET mapping yet — expect a 405 on “List pets” until you add one.</p>
+      <div class="status" id="pet-status"></div>
+      <div id="pets-table"></div>
+    </section>
+
+    <!-- RAW -->
+    <section class="card">
+      <h2>Raw request</h2>
+      <p class="endpoint">Any method, any path · <code>{userId}</code> is filled in from the active user</p>
+      <form id="raw-form" autocomplete="off">
+        <label>Method
+          <select name="method">
+            <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option>
+          </select>
+        </label>
+        <label style="flex:1;min-width:200px">Path <input name="path" value="/api/users" spellcheck="false" style="width:100%"></label>
+        <button class="primary" type="submit">Send</button>
+        <label style="width:100%">JSON body (ignored for GET)<textarea name="body" spellcheck="false" placeholder="{ }"></textarea></label>
+      </form>
+      <div class="presets" id="presets"></div>
+      <div class="status" id="raw-status"></div>
+    </section>
+
+  </div>
+
+  <!-- LOG -->
+  <section class="card log-card">
+    <div class="log-head">
+      <h2>Request log</h2>
+      <button class="small" type="button" id="log-clear">Clear</button>
+    </div>
+    <div id="log"><div class="empty" id="log-empty">Requests you send will show up here, newest first. Click one to see the full request and response.</div></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pretty = (v) => typeof v === 'string' ? v : JSON.stringify(v, null, 2);
+
+  const store = {
+    get(k) { try { return localStorage.getItem('petapi.' + k); } catch { return null; } },
+    set(k, v) { try { v == null ? localStorage.removeItem('petapi.' + k) : localStorage.setItem('petapi.' + k, String(v)); } catch {} },
+  };
+
+  const servedOverHttp = location.protocol.startsWith('http');
+  const state = {
+    base: store.get('base') || (servedOverHttp && location.port === '8080' ? location.origin : 'http://localhost:8080'),
+    userId: store.get('userId') ? Number(store.get('userId')) : null,
+    username: store.get('username') || null,
+    users: [],
+  };
+  const base = () => state.base.replace(/\/+$/, '');
+
+  // ---------- core request helper ----------
+  class ApiError extends Error {
+    constructor(message, status, data) { super(message); this.status = status; this.data = data; }
+  }
+
+  const STATUS_HINTS = {
+    400: 'Bad request — the JSON body did not match what the controller expects.',
+    404: 'Not found — check the path (users live at /api/users, everything else is under /api/v1).',
+    405: 'Method not allowed — no handler exists for that HTTP method on this path.',
+    415: 'Unsupported media type — the request needs Content-Type: application/json.',
+    500: 'Server error — check the Spring Boot console for the stack trace.',
+  };
+
+  function describe(status, data) {
+    let detail = '';
+    if (data && typeof data === 'object') detail = data.message || data.error || '';
+    else if (data) detail = String(data).slice(0, 200);
+    return [String(status), detail, STATUS_HINTS[status]].filter(Boolean).join(' · ');
+  }
+
+  async function api(method, path, body) {
+    const url = base() + path;
+    const opts = { method, headers: { Accept: 'application/json' } };
+    if (body !== undefined) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    const t0 = performance.now();
+    let res = null, data = null, err = null;
+    try {
+      res = await fetch(url, opts);
+      const text = await res.text();
+      try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+    } catch (e) {
+      err = e;
+    }
+    const ms = Math.round(performance.now() - t0);
+    logEntry({ method, url, path, reqBody: body, status: res && res.status, data, err, ms });
+
+    if (err) throw new ApiError(`Network error — is the backend running at ${base()}? Could also be CORS (check the browser console).`, 0, null);
+    if (!res.ok) throw new ApiError(describe(res.status, data), res.status, data);
+    return { status: res.status, data };
+  }
+
+  // ---------- request log ----------
+  function logEntry({ method, url, path, reqBody, status, data, err, ms }) {
+    const kind = err || status >= 400 ? 'err' : status >= 300 ? 'warn' : 'ok';
+    const d = document.createElement('details');
+    d.className = 'entry';
+    d.innerHTML =
+      `<summary><span class="m ${esc(method)}">${esc(method)}</span>` +
+      `<span class="pill ${kind}">${err ? 'ERR' : status}</span>` +
+      `<span class="path" title="${esc(url)}">${esc(path)}</span>` +
+      `<span class="ms">${ms} ms</span></summary>` +
+      `<div class="entry-body">` +
+      `<div class="lbl">URL</div><pre>${esc(url)}</pre>` +
+      (reqBody !== undefined ? `<div class="lbl">Request body</div><pre>${esc(pretty(reqBody))}</pre>` : '') +
+      `<div class="lbl">Response</div><pre>${esc(
+        err ? `${err.message}\n\nLikely causes: backend not running, wrong base URL, or a CORS block.`
+            : (data === null || data === '' ? '(empty body)' : pretty(data))
+      )}</pre></div>`;
+    if (kind === 'err') d.open = true;
+    const empty = $('#log-empty');
+    if (empty) empty.remove();
+    $('#log').prepend(d);
+  }
+
+  $('#log-clear').onclick = () => {
+    $('#log').innerHTML = '<div class="empty" id="log-empty">Log cleared.</div>';
+  };
+
+  // ---------- UI helpers ----------
+  function setStatus(el, msg, kind) {
+    el.textContent = msg || '';
+    el.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  async function run(statusEl, fn, btn) {
+    if (btn) btn.disabled = true;
+    setStatus(statusEl, 'Working…');
+    try {
+      const msg = await fn();
+      setStatus(statusEl, msg || 'Done.', 'ok');
+    } catch (e) {
+      setStatus(statusEl, e.message, 'err');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function requireUser() {
+    if (state.userId == null) throw new Error('Pick an active user first — create one or click “Use” in the Users list.');
+    return state.userId;
+  }
+
+  const num = (v) => (v === '' || v == null ? null : Number(v));
+
+  function renderTable(el, rows, { empty = 'Nothing here yet.', action, activeId } = {}) {
+    el.replaceChildren();
+    rows = (rows || []).map((r) => (r !== null && typeof r === 'object' ? r : { value: r }));
+    if (!rows.length) {
+      const d = document.createElement('div');
+      d.className = 'empty';
+      d.textContent = empty;
+      el.append(d);
+      return;
+    }
+    const cols = [...new Set(rows.flatMap((r) => Object.keys(r).filter((k) => r[k] === null || typeof r[k] !== 'object')))];
+    const t = document.createElement('table');
+    const head = t.createTHead().insertRow();
+    cols.forEach((c) => { const th = document.createElement('th'); th.textContent = c; head.append(th); });
+    if (action) head.append(document.createElement('th'));
+    const tb = t.createTBody();
+    rows.forEach((r) => {
+      const tr = tb.insertRow();
+      if (activeId != null && r.id === activeId) tr.className = 'active';
+      cols.forEach((c) => { tr.insertCell().textContent = r[c] === null || r[c] === undefined ? '—' : String(r[c]); });
+      if (action) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'small';
+        b.textContent = action.label;
+        b.onclick = () => action.fn(r);
+        tr.insertCell().append(b);
+      }
+    });
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    wrap.append(t);
+    el.append(wrap);
+  }
+
+  // ---------- connection + base URL ----------
+  async function ping() {
+    const dot = $('#conn-dot'), txt = $('#conn-text');
+    dot.className = 'dot';
+    txt.textContent = 'Checking…';
+    try {
+      const r = await fetch(base() + '/api/users', { headers: { Accept: 'application/json' } });
+      dot.className = 'dot ok';
+      txt.textContent = `Reachable · ${r.status}`;
+    } catch {
+      dot.className = 'dot err';
+      txt.textContent = 'Unreachable';
+    }
+  }
+
+  function updateCorsBanner() {
+    const sameOrigin = servedOverHttp && location.origin === base();
+    $('#cors-banner').hidden = sameOrigin;
+  }
+
+  const baseInput = $('#base-url');
+  baseInput.value = state.base;
+  baseInput.addEventListener('change', () => {
+    state.base = baseInput.value.trim() || 'http://localhost:8080';
+    baseInput.value = state.base;
+    store.set('base', state.base);
+    updateCorsBanner();
+    ping();
+  });
+
+  // ---------- active user ----------
+  function setActiveUser(id, username) {
+    state.userId = id == null ? null : Number(id);
+    state.username = username || null;
+    store.set('userId', state.userId);
+    store.set('username', state.username);
+    const chip = $('#active-chip');
+    if (state.userId == null) {
+      chip.className = 'chip none';
+      chip.textContent = 'No active user';
+    } else {
+      chip.className = 'chip';
+      chip.innerHTML = `Active user <b>#${esc(state.userId)}</b>${state.username ? ' ' + esc(state.username) : ''}`;
+    }
+    drawUsers();
+  }
+
+  function drawUsers(emptyMsg) {
+    renderTable($('#users-table'), state.users, {
+      empty: emptyMsg || 'No users loaded yet.',
+      activeId: state.userId,
+      action: { label: 'Use', fn: (u) => setActiveUser(u.id, u.username) },
+    });
+  }
+
+  // ---------- users ----------
+  async function loadUsers() {
+    const { status, data } = await api('GET', '/api/users');
+    state.users = status === 204 || !Array.isArray(data) ? [] : data;
+    drawUsers(status === 204 ? 'No users yet (backend returned 204 No Content).' : undefined);
+    return `${state.users.length} user(s) loaded.`;
+  }
+
+  $('#user-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    run($('#user-status'), async () => {
+      const { data } = await api('POST', '/api/users', { username: f.username.value.trim(), password: f.password.value });
+      f.reset();
+      if (data && data.id != null) setActiveUser(data.id, data.username);
+      await loadUsers();
+      return `Created user #${data && data.id} and made it the active user.`;
+    }, f.querySelector('button[type=submit]'));
+  });
+
+  $('#users-refresh').onclick = (e) => run($('#user-status'), loadUsers, e.currentTarget);
+
+  $('#manual-user-set').onclick = () => {
+    const v = $('#manual-user-id').value;
+    if (!v) { setActiveUser(null); setStatus($('#user-status'), 'Active user cleared.', 'ok'); return; }
+    const match = state.users.find((u) => String(u.id) === v);
+    setActiveUser(Number(v), match && match.username);
+    setStatus($('#user-status'), `Active user set to #${v}.`, 'ok');
+  };
+
+  // ---------- food ----------
+  async function loadFoods(q) {
+    const uid = requireUser();
+    const qs = q ? '?foodName=' + encodeURIComponent(q) : '';
+    const { data } = await api('GET', `/api/v1/users/${uid}/food${qs}`);
+    const foods = Array.isArray(data) ? data : [];
+    renderTable($('#food-table'), foods, { empty: q ? `No food matching “${q}”.` : 'This user has no food yet.' });
+    const names = [...new Set(foods.map((f) => f.productBrand || f.foodName).filter(Boolean))];
+    $('#food-names').innerHTML = names.map((n) => `<option value="${esc(n)}">`).join('');
+    return `${foods.length} food item(s).`;
+  }
+
+  $('#food-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    run($('#food-status'), async () => {
+      const uid = requireUser();
+      const body = {
+        productBrand: f.productBrand.value.trim(),
+        wet: f.wet.checked,
+        totalWeight: num(f.totalWeight.value),
+      };
+      const { data } = await api('POST', `/api/v1/users/${uid}/food`, body);
+      f.reset();
+      await loadFoods();
+      return typeof data === 'string' ? `Server: ${data}` : 'Food added.';
+    }, f.querySelector('button[type=submit]'));
+  });
+
+  $('#food-search').addEventListener('submit', (e) => {
+    e.preventDefault();
+    run($('#food-status'), () => loadFoods(e.target.q.value.trim()), e.target.querySelector('button'));
+  });
+
+  // ---------- pets ----------
+  async function loadPets() {
+    const uid = requireUser();
+    const { data } = await api('GET', `/api/v1/users/${uid}/pets`);
+    const pets = Array.isArray(data) ? data : [];
+    renderTable($('#pets-table'), pets, { empty: 'This user has no pets yet.' });
+    return `${pets.length} pet(s).`;
+  }
+
+  $('#pet-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    run($('#pet-status'), async () => {
+      const uid = requireUser();
+      const body = {
+        userId: uid,
+        name: f.elements.name.value.trim(),
+        foodName: f.foodName.value.trim() || null,
+        foodWeightPerServing: num(f.foodWeightPerServing.value),
+        servingsPerDay: num(f.servingsPerDay.value),
+        animalWeight: num(f.animalWeight.value),
+        age: num(f.age.value),
+        targetWeight: num(f.targetWeight.value),
+      };
+      const { data } = await api('POST', `/api/v1/users/${uid}/pets`, body);
+      f.reset();
+      return typeof data === 'string' ? `Server: ${data}` : 'Pet added.';
+    }, f.querySelector('button[type=submit]'));
+  });
+
+  $('#pets-refresh').onclick = (e) => run($('#pet-status'), loadPets, e.currentTarget);
+
+  // ---------- raw request ----------
+  const PRESETS = [
+    ['GET', '/api/users', ''],
+    ['POST', '/api/users', { username: 'testuser', password: 'pw123' }],
+    ['GET', '/api/v1/users/{userId}/food', ''],
+    ['GET', '/api/v1/users/{userId}/food?foodName=doggie', ''],
+    ['POST', '/api/v1/users/{userId}/food', { productBrand: 'DoggieFoo', wet: false, totalWeight: 10.5 }],
+    ['GET', '/api/v1/users/{userId}/pets', ''],
+    ['POST', '/api/v1/users/{userId}/pets', { name: 'Rex', foodName: 'DoggieFoo', foodWeightPerServing: 0.25, servingsPerDay: 2, animalWeight: 25.6, age: 5, targetWeight: 21 }],
+  ];
+
+  const rawForm = $('#raw-form');
+  PRESETS.forEach(([m, p, b]) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = `${m} ${p}`;
+    btn.onclick = () => {
+      rawForm.elements.method.value = m;
+      rawForm.path.value = p;
+      rawForm.body.value = b ? JSON.stringify(b, null, 2) : '';
+    };
+    $('#presets').append(btn);
+  });
+
+  rawForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    run($('#raw-status'), async () => {
+      const method = rawForm.elements.method.value;
+      let path = rawForm.path.value.trim();
+      if (!path.startsWith('/')) path = '/' + path;
+      if (path.includes('{userId}')) path = path.replaceAll('{userId}', requireUser());
+      let body;
+      const raw = rawForm.body.value.trim();
+      if (method !== 'GET' && raw) {
+        try { body = JSON.parse(raw); } catch (err) { throw new Error('Body is not valid JSON: ' + err.message); }
+      }
+      const { status } = await api(method, path, body);
+      return `${status} — see the log for the response.`;
+    }, rawForm.querySelector('button[type=submit]'));
+  });
+
+  // ---------- init ----------
+  updateCorsBanner();
+  setActiveUser(state.userId, state.username);
+  ping();
+  loadUsers().catch(() => drawUsers('Could not load users — is the backend running?'));
+})();
+</script>
+</body>
+</html>
