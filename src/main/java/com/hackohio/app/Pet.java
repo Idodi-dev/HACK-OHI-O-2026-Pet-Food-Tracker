@@ -4,6 +4,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -14,8 +16,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Transient;
 
 @Entity 
@@ -40,9 +43,12 @@ public class Pet {
     @Column
     private int servingsPerDay;
     @Column
-    private Animal animal;
-    @OneToOne
-    private PetFood foodType;
+    private String animal;
+    @ManyToMany
+    @JoinTable(name = "pet_foods",
+        joinColumns = @JoinColumn(name = "pet_id"),
+        inverseJoinColumns = @JoinColumn(name = "food_id"))
+    private List<PetFood> foodTypes = new ArrayList<>();
     @Column
     private int servingsToday;
     @Column
@@ -64,15 +70,15 @@ public class Pet {
 
 
     
-    public Pet(User user, String name, double foodWeightPerServing, int servingsPerDay, Pet.Animal animal,
-            PetFood foodType, int servingsToday, double animalWeight, int age, double targetWeight,
+    public Pet(User user, String name, double foodWeightPerServing, int servingsPerDay, String animal,
+            List<PetFood> foodTypes, int servingsToday, double animalWeight, int age, double targetWeight,
             boolean reachedFoodLimit, ArrayList<Reminder> reminders) {
         this.user = user;
         this.name = name;
         this.foodWeightPerServing = foodWeightPerServing;
         this.servingsPerDay = servingsPerDay;
         this.animal = animal;
-        this.foodType = foodType;
+        this.foodTypes = foodTypes;
         this.servingsToday = servingsToday;
         this.animalWeight = animalWeight;
         this.age = age;
@@ -83,10 +89,11 @@ public class Pet {
         this.maxTimeBetweenFeedings = Duration.of(feedingWindow.toMinutes()/servingsPerDay, ChronoUnit.MINUTES);
     }
 
-    public Pet(String name, double foodWeightPerServing, int servingsPerDay, String foodNaem, double animalWeight, int age, double targetWeight) {
+    public Pet(String name, double foodWeightPerServing, int servingsPerDay, String animal, double animalWeight, int age, double targetWeight) {
         this.name = name;
         this.foodWeightPerServing = foodWeightPerServing;
         this.servingsPerDay = servingsPerDay;
+        this.animal = animal;
         this.animalWeight = animalWeight;
         this.age = age;
         this.targetWeight = targetWeight;
@@ -101,11 +108,19 @@ public class Pet {
     public void meal() {
         lastFed = LocalDateTime.now();
         servingsToday++;
+
         if(servingsPerDay == servingsToday) {
-            setReachedFoodLimit(true);
+                setReachedFoodLimit(true);
         }
 
-        this.foodType.updateSupply(this.foodWeightPerServing);
+        Iterator<PetFood> iterator = this.foodTypes.iterator();
+        while(iterator.hasNext()) {
+            PetFood foodType = iterator.next();
+            
+            if(foodType != null) {
+                foodType.updateSupply(this.foodWeightPerServing);
+            }
+        }
     }
 
     public void update(){
@@ -141,13 +156,13 @@ public class Pet {
     }
 
 
-    public void setAnimal(Animal animal) {
+    public void setAnimal(String animal) {
         this.animal = animal;
     }
 
 
-    public void setFoodType(PetFood foodType) {
-        this.foodType = foodType;
+    public void setFoodTypes(List<PetFood> foodTypes) {
+        this.foodTypes = foodTypes;
     }
 
 
@@ -170,6 +185,10 @@ public class Pet {
         this.targetWeight = targetWeight;
     }
 
+    public Long getId() {
+        return this.id;
+    }
+
 
     public String getName() {
         return name;
@@ -186,13 +205,13 @@ public class Pet {
     }
 
 
-    public Animal getAnimal() {
+    public String getAnimal() {
         return animal;
     }
 
 
-    public PetFood getFoodType() {
-        return foodType;
+    public List<PetFood> getFoodTypes() {
+        return foodTypes;
     }
 
 
@@ -229,12 +248,6 @@ public class Pet {
 
     public void setLastFed(LocalDateTime lastFed) {
         this.lastFed = lastFed;
-    }
-
-
-    enum Animal {
-        dog, cat, lizard, rabbit, hamster, bird, gerbil, cow, duck, chicken, 
-        sheep, pig;
     }
 
     @Override 

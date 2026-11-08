@@ -9,6 +9,8 @@ public interface PetFoodRepository extends JpaRepository<PetFood, Long> {
     // Filters down by the associated user's ID AND applies a case-insensitive partial match on the brand
     List<PetFood> findByUserIdAndFoodNameContainingIgnoreCase(long userId, String foodName);
 
+
+
     // Returns all food types for a specific user if no search query is provided
     List<PetFood> findByUserId(Long userId);
 }

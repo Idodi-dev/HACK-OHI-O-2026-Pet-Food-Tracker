@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,7 @@ class PetData {
     private double foodWeightPerServing;
     private int servingsPerDay;
     private String foodName;
+    private String animal;
     private double animalWeight;
     private int age;
     private double targetWeight;
@@ -53,6 +55,14 @@ class PetData {
 
     public void setFoodName(String foodName) {
         this.foodName = foodName;
+    }
+
+    public String getAnimal() {
+        return animal;
+    }
+
+    public void setAnimal(String animal) {
+        this.animal = animal;
     }
 
     public double getAnimalWeight() {
@@ -106,7 +116,7 @@ public class PetController {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         
         Pet createdPet = new Pet(newPet.getName(), newPet.getFoodWeightPerServing(), 
-        newPet.getServingsPerDay(), newPet.getFoodName(), newPet.getAnimalWeight(), newPet.getAge(), newPet.getTargetWeight());
+        newPet.getServingsPerDay(), newPet.getAnimal(), newPet.getAnimalWeight(), newPet.getAge(), newPet.getTargetWeight());
 
         createdPet.setUser(user);
 
@@ -119,6 +129,17 @@ public class PetController {
     public ResponseEntity<List<Pet>> getPets(@PathVariable Long userId) {
         return ResponseEntity.ok(petRepository.findByUserId(userId));
     }
-    
+
+    @PostMapping("/{petId}/feed")
+    @Transactional
+    public ResponseEntity<Pet> feedPet(@PathVariable Long userId, @PathVariable Long petId) {
+        Pet pet = petRepository.findById(petId)
+                  .filter(p -> p.getUser().getId().equals(userId))
+                  .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet not found"));
+
+        pet.meal();
+
+        return ResponseEntity.ok(petRepository.save(pet));
+    }
 
 }

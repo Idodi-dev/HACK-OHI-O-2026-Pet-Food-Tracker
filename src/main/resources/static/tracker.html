@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pet Food Tracker</title>
+<style>
+  :root {
+    --bg: #faf6ef; --surface: #ffffff; --surface-2: #f3ece0; --ink: #2a2420; --muted: #7a6f64; --line: #e8dfd1;
+    --brand: #c8692b; --brand-ink: #ffffff; --brand-soft: #fbe9db;
+    --good: #3f8a5a; --good-soft: #e3f2e8; --warn: #b7791f; --warn-soft: #fbf0d9; --bad: #c0392b; --bad-soft: #fbe3e0;
+    --shadow: 0 1px 2px rgba(60, 40, 20, .06), 0 4px 16px rgba(60, 40, 20, .06);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1714; --surface: #24201c; --surface-2: #2e2924; --ink: #f1ebe3; --muted: #a89c8e; --line: #3a342d;
+      --brand: #e58a4c; --brand-ink: #1a1714; --brand-soft: #3a2a1e;
+      --good: #6cc08a; --good-soft: #1f3327; --warn: #e3b25a; --warn-soft: #3a3020; --bad: #ef7a6c; --bad-soft: #3d2420;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
+  [hidden] { display: none !important; }
+  h1, h2, h3 { margin: 0; line-height: 1.2; }
+  button { font: inherit; cursor: pointer; }
+
+  .btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 8px 14px; font-weight: 600; }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+  .btn.ghost:hover { color: var(--ink); background: var(--surface-2); }
+  .btn:disabled { opacity: .55; cursor: default; }
+
+  label.field { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  label.field small { font-weight: 400; }
+  input, select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; width: 100%; }
+  input:focus, select:focus { outline: 2px solid var(--brand); outline-offset: -1px; border-color: transparent; }
+  div.field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  div.field small { font-weight: 400; }
+  .food-picks { display: flex; flex-wrap: wrap; gap: 6px; }
+  .food-picks label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 5px 12px 5px 9px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .food-picks label:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
+  .food-picks input { accent-color: var(--brand); margin: 0; }
+  .food-picks .none { color: var(--muted); font-weight: 400; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--ink); }
+  .check input { width: 18px; height: 18px; accent-color: var(--brand); }
+
+  /* ---------- auth ---------- */
+  #auth { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+  .auth-card { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 32px 28px; box-shadow: var(--shadow); }
+  .logo { font-size: 40px; line-height: 1; }
+  .auth-card h1 { font-size: 26px; margin: 12px 0 4px; }
+  .auth-card p.sub { color: var(--muted); margin: 0 0 22px; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border-radius: 11px; padding: 4px; margin-bottom: 20px; }
+  .tabs button { border: 0; background: transparent; padding: 8px; border-radius: 8px; font-weight: 600; color: var(--muted); }
+  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .auth-form { display: flex; flex-direction: column; gap: 14px; }
+  .form-error { color: var(--bad); font-size: 13px; min-height: 18px; margin: -4px 0 0; }
+  .auth-form .btn { padding: 11px; }
+
+  /* ---------- app shell ---------- */
+  header.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .top-inner { max-width: 1120px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
+  .brand span:first-child { font-size: 24px; }
+  .spacer { flex: 1; }
+  .who { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; font-weight: 700; font-size: 13px; text-transform: uppercase; }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 24px 20px 64px; }
+  .greeting h1 { font-size: 26px; }
+  .greeting p { color: var(--muted); margin: 4px 0 0; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 22px 0 30px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .stat .n { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .stat .l { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .stat.alert .n { color: var(--bad); }
+
+  section.block { margin-bottom: 36px; }
+  .block-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .block-head h2 { font-size: 19px; }
+  .count { color: var(--muted); font-weight: 500; font-size: 15px; margin-left: 4px; }
+  .search { position: relative; width: 240px; max-width: 100%; }
+  .search input { padding-left: 34px; }
+  .search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+
+  .pet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px; }
+  .pet-top { display: flex; gap: 12px; align-items: center; }
+  .pet-emoji { width: 48px; height: 48px; border-radius: 14px; background: var(--brand-soft); display: grid; place-items: center; font-size: 26px; flex: none; }
+  .pet-name { font-size: 17px; font-weight: 700; }
+  .pet-kind { color: var(--muted); font-size: 13px; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .badge.good { background: var(--good-soft); color: var(--good); }
+  .badge.warn { background: var(--warn-soft); color: var(--warn); }
+  .badge.bad { background: var(--bad-soft); color: var(--bad); }
+  .badge.muted { background: var(--surface-2); color: var(--muted); }
+  .pet-top .badge { margin-left: auto; }
+
+  .servings { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+  .servings-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
+  .servings-row b { color: var(--ink); }
+  .dots { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .dot { width: 22px; height: 8px; border-radius: 4px; background: var(--line); }
+  .dot.on { background: var(--brand); }
+
+  dl.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin: 0; }
+  dl.facts div { min-width: 0; }
+  dl.facts dt { font-size: 12px; color: var(--muted); }
+  dl.facts dd { margin: 1px 0 0; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .delta { font-weight: 500; font-size: 12px; color: var(--muted); }
+
+  .pet-foot { display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; margin-top: auto; }
+  .pet-foot .note { color: var(--muted); font-size: 12px; flex: 1; }
+  .pet-foot .btn.primary { margin-left: auto; }
+  .icon-btn { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 9px; padding: 6px 10px; font-size: 13px; font-weight: 600; }
+  .icon-btn:hover { color: var(--ink); background: var(--surface-2); }
+  .pantry { display: flex; flex-direction: column; gap: 10px; }
+  .food { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) auto auto; gap: 16px; align-items: center; }
+  .food-name { font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .food-sub { color: var(--muted); font-size: 13px; }
+  .bar { height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+  .bar span { display: block; height: 100%; border-radius: 5px; background: var(--good); transition: width .4s; }
+  .bar.warn span { background: var(--warn); }
+  .bar.bad span { background: var(--bad); }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .days { text-align: right; min-width: 92px; }
+  .days .n { font-weight: 700; font-size: 18px; }
+  .days .l { font-size: 12px; color: var(--muted); }
+
+  .empty { border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 32px 20px; text-align: center; color: var(--muted); }
+  .empty .big { font-size: 34px; }
+  .empty p { margin: 6px 0 14px; }
+  .error-box { border: 1px solid var(--bad); background: var(--bad-soft); color: var(--bad); border-radius: var(--radius); padding: 14px 16px; font-size: 14px; }
+  .loading { color: var(--muted); padding: 20px 0; }
+
+  /* ---------- dialogs ---------- */
+  dialog { border: 0; padding: 0; border-radius: 18px; background: var(--surface); color: var(--ink); width: min(520px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  dialog::backdrop { background: rgba(30, 20, 10, .45); }
+  dialog form { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+  dialog h2 { font-size: 20px; }
+  dialog .hint { color: var(--muted); font-size: 13px; margin: -8px 0 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; transition: .25s; max-width: calc(100vw - 32px); z-index: 50; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.err { background: var(--bad); color: #fff; }
+
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .food { grid-template-columns: 1fr; gap: 10px; }
+    .days { text-align: left; }
+    .who .name { display: none; }
+    .top-inner, main { padding-left: 16px; padding-right: 16px; }
+    .three { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 420px) { .two, .three { grid-template-columns: 1fr; } .search { width: 100%; } }
+</style>
+</head>
+<body>
+
+<!-- ================= AUTH ================= -->
+<div id="auth" hidden>
+  <div class="auth-card">
+    <div class="logo">🐾</div>
+    <h1>Pet Food Tracker</h1>
+    <p class="sub">Keep track of who's been fed and what's left in the pantry.</p>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-mode="signin">Sign in</button>
+      <button type="button" role="tab" aria-selected="false" data-mode="signup">Create account</button>
+    </div>
+    <form class="auth-form" id="auth-form" autocomplete="on">
+      <label class="field">Username <input name="username" required autocomplete="username"></label>
+      <label class="field">Password <input name="password" type="password" required autocomplete="current-password"></label>
+      <p class="form-error" id="auth-error"></p>
+      <button class="btn primary" type="submit" id="auth-submit">Sign in</button>
+    </form>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" hidden>
+  <header class="top">
+    <div class="top-inner">
+      <div class="brand"><span>🐾</span><span>Pet Food Tracker</span></div>
+      <div class="spacer"></div>
+      <div class="who"><div class="avatar" id="who-avatar"></div><span class="name" id="who-name"></span></div>
+      <button class="btn ghost" type="button" id="signout">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="greeting">
+      <h1 id="greeting-title">Hi there</h1>
+      <p id="greeting-sub">Here's how everyone's doing today.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n" id="st-pets">–</div><div class="l">Pets</div></div>
+      <div class="stat" id="st-hungry-card"><div class="n" id="st-hungry">–</div><div class="l">Still need feeding today</div></div>
+      <div class="stat"><div class="n" id="st-foods">–</div><div class="l">Foods in pantry</div></div>
+      <div class="stat" id="st-low-card"><div class="n" id="st-low">–</div><div class="l">Running low</div></div>
+    </div>
+
+    <section class="block">
+      <div class="block-head">
+        <h2>Your pets <span class="count" id="pets-count"></span></h2>
+        <div class="spacer"></div>
+        <button class="btn primary" type="button" data-open="pet-dialog">+ Add pet</button>
+      </div>
+      <div id="pets"></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <h2>Pantry <span class="count" id="foods-count"></span></h2>
+        <div class="spacer"></div>
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="food-search" type="search" placeholder="Search food">
+        </div>
+        <button class="btn primary" type="button" data-open="food-dialog">+ Add food</button>
+      </div>
+      <div id="foods"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= DIALOGS ================= -->
+<dialog id="pet-dialog">
+  <form id="pet-form" autocomplete="off">
+    <h2 id="pet-title">Add a pet</h2>
+    <label class="field">Name <input name="name" required placeholder="Rex"></label>
+    <div class="field"><span>Foods <small>(pick any number)</small></span><div class="food-picks" id="pet-food-picks"></div></div>
+    <div class="two">
+      <label class="field">Food per serving <input name="foodWeightPerServing" type="number" step="any" min="0" required placeholder="0.25"></label>
+      <label class="field">Servings per day <input name="servingsPerDay" type="number" step="1" min="1" required placeholder="2"></label>
+    </div>
+    <div class="three">
+      <label class="field">Age <input name="age" type="number" step="1" min="0" placeholder="5"></label>
+      <label class="field">Weight <input name="animalWeight" type="number" step="any" min="0" placeholder="25.6"></label>
+      <label class="field">Target weight <input name="targetWeight" type="number" step="any" min="0" placeholder="21"></label>
+    </div>
+    <p class="form-error" id="pet-error"></p>
+    <div class="actions">
+      <button class="btn ghost" type="button" data-close>Cancel</button>
+      <button class="btn primary" type="submit" id="pet-submit">Add pet</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="food-dialog">
+  <form id="food-form" autocomplete="off">
+    <h2 id="food-title">Add food to the pantry</h2>
+    <label class="field">Brand / name <input name="productBrand" required placeholder="DoggieFoo"></label>
+    <div class="two">
+      <label class="field">Bag size (total weight) <input name="totalWeight" type="number" step="any" min="0" required placeholder="10.5"></label>
+      <label class="field" id="food-remaining-field">Amount remaining <input name="currentWeight" type="number" step="any" min="0" placeholder="10.5"></label>
+    </div>
+    <label class="check"><input type="checkbox" name="wet"> This is wet food</label>
+    <p class="form-error" id="food-error"></p>
+    <div class="actions">
+      <button class="btn ghost" type="button" data-close>Cancel</button>
+      <button class="btn primary" type="submit" id="food-submit">Add food</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  // ---------- config ----------
+  // Served by Spring Boot (port 8080) → same origin. Opened any other way → talk to localhost:8080.
+  const API = (() => {
+    try { const o = localStorage.getItem('petTracker.api'); if (o) return o.replace(/\/+$/, ''); } catch {}
+    return location.protocol.startsWith('http') && location.port === '8080' ? '' : 'http://localhost:8080';
+  })();
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = (n) => (n == null || isNaN(n) ? '—' : (Math.round(Number(n) * 100) / 100).toString());
+
+  const session = {
+    get() { try { return JSON.parse(localStorage.getItem('petTracker.user')); } catch { return null; } },
+    set(u) { try { localStorage.setItem('petTracker.user', JSON.stringify(u)); } catch {} },
+    clear() { try { localStorage.removeItem('petTracker.user'); } catch {} },
+  };
+
+  const state = { user: null, pets: [], foods: [], searchResults: null };
+
+  // ---------- http ----------
+  async function request(method, path, body) {
+    const opts = { method, headers: { Accept: 'application/json' } };
+    if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+    let res;
+    try { res = await fetch(API + path, opts); }
+    catch { throw new Error("Can't reach the server. Is the Spring Boot app running?"); }
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+    if (!res.ok) {
+      const detail = data && typeof data === 'object' ? (data.message || data.error) : data;
+      const err = new Error(`Server returned ${res.status}${detail ? ': ' + String(detail).slice(0, 160) : ''}`);
+      err.status = res.status;
+      throw err;
+    }
+    return { status: res.status, data };
+  }
+
+  const api = {
+    users: async () => { const r = await request('GET', '/api/users'); return Array.isArray(r.data) ? r.data : []; },
+    createUser: (username, password) => request('POST', '/api/users', { username, password }).then((r) => r.data),
+    pets: (uid) => request('GET', `/api/v1/users/${uid}/pets`).then((r) => (Array.isArray(r.data) ? r.data : [])),
+    addPet: (uid, pet) => request('POST', `/api/v1/users/${uid}/pets`, pet),
+    feedPet: (uid, petId) => request('POST', `/api/v1/users/${uid}/pets/${petId}/feed`).then((r) => r.data),
+    foods: (uid, q) => request('GET', `/api/v1/users/${uid}/food${q ? '?foodName=' + encodeURIComponent(q) : ''}`).then((r) => (Array.isArray(r.data) ? r.data : [])),
+    addFood: (uid, food) => request('POST', `/api/v1/users/${uid}/food`, food),
+    updatePet: (uid, petId, pet) => request('PUT', `/api/v1/users/${uid}/pets/${petId}`, pet),
+    updateFood: (uid, foodId, food) => request('PUT', `/api/v1/users/${uid}/food/${foodId}`, food),
+  };
+
+  // ---------- toast ----------
+  let toastTimer;
+  function toast(msg, isErr) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.className = 'show' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (t.className = ''), isErr ? 5000 : 2600);
+  }
+
+  // ---------- auth ----------
+  let mode = 'signin';
+  document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
+    mode = b.dataset.mode;
+    document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+    $('#auth-submit').textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+    $('#auth-form').elements.password.autocomplete = mode === 'signin' ? 'current-password' : 'new-password';
+    $('#auth-error').textContent = '';
+  }));
+
+  $('#auth-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target, btn = $('#auth-submit');
+    const username = f.elements.username.value.trim();
+    const password = f.elements.password.value;
+    $('#auth-error').textContent = '';
+    btn.disabled = true;
+    try {
+      const users = await api.users();
+      const existing = users.find((u) => u.username === username);
+      let user;
+      if (mode === 'signin') {
+        // No login endpoint yet — match against the user list.
+        if (!existing) throw new Error('No account with that username.');
+        if (existing.password !== password) throw new Error('Incorrect password.');
+        user = existing;
+      } else {
+        if (existing) throw new Error('That username is taken.');
+        user = await api.createUser(username, password);
+        if (!user || user.id == null) throw new Error('Account was created but the server did not return it.');
+      }
+      session.set({ id: user.id, username: user.username });
+      f.reset();
+      enterApp();
+    } catch (err) {
+      $('#auth-error').textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('#signout').addEventListener('click', () => {
+    session.clear();
+    state.user = null;
+    showAuth();
+  });
+
+  function showAuth() {
+    $('#app').hidden = true;
+    $('#auth').hidden = false;
+    $('.tabs [data-mode="signin"]').click();
+    $('#auth-form').elements.username.focus();
+  }
+
+  function enterApp() {
+    state.user = session.get();
+    if (!state.user) return showAuth();
+    $('#auth').hidden = true;
+    $('#app').hidden = false;
+    $('#who-name').textContent = state.user.username;
+    $('#who-avatar').textContent = (state.user.username || '?').slice(0, 1);
+    const h = new Date().getHours();
+    $('#greeting-title').textContent = `${h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'}, ${state.user.username}`;
+    refreshAll();
+  }
+
+  // ---------- data loading ----------
+  async function refreshAll() {
+    $('#pets').innerHTML = '<div class="loading">Loading pets…</div>';
+    $('#foods').innerHTML = '<div class="loading">Loading pantry…</div>';
+    await Promise.all([loadPets(), loadFoods()]);
+  }
+
+  async function loadPets() {
+    try {
+      state.pets = await api.pets(state.user.id);
+      renderPets();
+      if (state.foods.length) renderFoods($('#food-search').value.trim());
+    } catch (err) {
+      state.pets = [];
+      $('#pets').innerHTML = `<div class="error-box">Couldn't load pets. ${esc(err.message)}</div>`;
+    }
+    renderStats();
+  }
+
+  async function loadFoods() {
+    try {
+      state.foods = await api.foods(state.user.id);
+      if (!$('#food-search').value.trim()) state.searchResults = null;
+      renderFoods();
+    } catch (err) {
+      state.foods = [];
+      $('#foods').innerHTML = `<div class="error-box">Couldn't load the pantry. ${esc(err.message)}</div>`;
+    }
+    renderFoodSelect();
+    renderStats();
+  }
+
+  let searchTimer;
+  $('#food-search').addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    const q = e.target.value.trim();
+    searchTimer = setTimeout(async () => {
+      if (!q) { state.searchResults = null; renderFoods(); return; }
+      try {
+        state.searchResults = await api.foods(state.user.id, q);
+        renderFoods(q);
+      } catch (err) {
+        $('#foods').innerHTML = `<div class="error-box">Search failed. ${esc(err.message)}</div>`;
+      }
+    }, 250);
+  });
+
+  // ---------- rendering ----------
+  const EMOJI = { dog: '🐕', cat: '🐈', lizard: '🦎', rabbit: '🐇', hamster: '🐹', bird: '🐦', gerbil: '🐭', cow: '🐄', duck: '🦆', chicken: '🐔', sheep: '🐑', pig: '🐖' };
+
+  function since(s) {
+    if (!s) return 'Never';
+    const d = new Date(String(s).replace(/(\.\d{3})\d+/, '$1'));
+    if (isNaN(d)) return String(s);
+    const m = Math.round((Date.now() - d) / 60000);
+    if (m < 1) return 'Just now';
+    if (m < 60) return `${m} min ago`;
+    const h = Math.round(m / 60);
+    if (h < 24) return `${h} hr ago`;
+    return `${Math.round(h / 24)} days ago`;
+  }
+
+  // Many-to-many: accept whatever the Pet JSON calls its food collection.
+  function petFoodNames(p) {
+    const v = p.foodTypes ?? p.foods ?? p.petFoods ?? p.foodType ?? p.food;
+    const arr = Array.isArray(v) ? v : v ? [v] : [];
+    return arr.map((f) => (typeof f === 'string' ? f : f && (f.productBrand || f.foodName))).filter(Boolean);
+  }
+  function petsEating(f) {
+    const n = f.productBrand || f.foodName;
+    return state.pets.filter((p) => petFoodNames(p).includes(n)).map((p) => p.name);
+  }
+
+  function foodLevel(f) {
+    const total = Number(f.totalWeight) || 0;
+    const cur = Number(f.currentWeight) || 0;
+    return total > 0 ? Math.max(0, Math.min(1, cur / total)) : 0;
+  }
+
+  function petStatus(p) {
+    const per = Number(p.servingsPerDay) || 0;
+    const today = Number(p.servingsToday) || 0;
+    if (p.reachedFoodLimit || (per > 0 && today >= per)) return { cls: 'good', text: 'Fed for today', hungry: false };
+    const left = Math.max(0, per - today);
+    if (today === 0) return { cls: 'warn', text: 'Not fed yet', hungry: true };
+    return { cls: 'warn', text: `${left} serving${left === 1 ? '' : 's'} left`, hungry: true };
+  }
+
+  function feedButton(p, st, i) {
+    const note = st.hungry ? '' : 'Limit reached';
+    return `<button class="icon-btn" type="button" data-edit-pet="${i}">✏️ Edit</button><span class="note">${note}</span><button class="btn primary" type="button" data-feed="${i}">🍽 ${st.hungry ? 'Feed' : 'Feed again'}</button>`;
+  }
+
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-feed]');
+    if (!b) return;
+    const pet = state.pets[Number(b.dataset.feed)];
+    const label = b.textContent;
+    b.disabled = true;
+    b.textContent = 'Feeding…';
+    try {
+      await api.feedPet(state.user.id, pet && pet.id);
+      toast(`${pet ? pet.name : 'Pet'} was fed. 🍖`);
+      await Promise.all([loadPets(), loadFoods()]);
+    } catch (err) {
+      toast(`Couldn't feed ${pet ? pet.name : 'pet'}. ${err.message}`, true);
+      b.disabled = false;
+      b.textContent = label;
+    }
+  });
+
+  function renderPets() {
+    const el = $('#pets');
+    $('#pets-count').textContent = state.pets.length ? `· ${state.pets.length}` : '';
+    if (!state.pets.length) {
+      el.innerHTML = `<div class="empty"><div class="big">🐶</div><p>No pets yet. Add your first one to start tracking meals.</p><button class="btn primary" type="button" data-open="pet-dialog">+ Add pet</button></div>`;
+      return;
+    }
+    el.innerHTML = `<div class="grid">${state.pets.map((p, i) => {
+      const st = petStatus(p);
+      const per = Math.max(0, Number(p.servingsPerDay) || 0);
+      const today = Number(p.servingsToday) || 0;
+      const dots = Array.from({ length: Math.min(per, 10) }, (_, i) => `<span class="dot${i < today ? ' on' : ''}"></span>`).join('');
+      const w = Number(p.animalWeight), t = Number(p.targetWeight);
+      const diff = w && t ? w - t : null;
+      const foods = petFoodNames(p);
+      return `
+        <article class="pet">
+          <div class="pet-top">
+            <div class="pet-emoji">${EMOJI[p.animal] || '🐾'}</div>
+            <div>
+              <div class="pet-name">${esc(p.name || 'Unnamed')}</div>
+              <div class="pet-kind">${p.animal ? esc(String(p.animal).charAt(0).toUpperCase() + String(p.animal).slice(1)) : 'Species not set'}${p.age ? ` · ${esc(p.age)} yr` : ''}</div>
+            </div>
+            <span class="badge ${st.cls}">${st.text}</span>
+          </div>
+          <div class="servings">
+            <div class="servings-row"><span>Today's servings</span><b>${today} / ${per}</b></div>
+            ${dots ? `<div class="dots">${dots}</div>` : ''}
+          </div>
+          <dl class="facts">
+            <div style="grid-column: 1 / -1"><dt>Foods</dt><dd style="white-space:normal">${foods.length ? `<div class="chips">${foods.map((n) => `<span class="chip">${esc(n)}</span>`).join('')}</div>` : '<span class="delta">None linked</span>'}</dd></div>
+            <div><dt>Per serving</dt><dd>${fmt(p.foodWeightPerServing)}</dd></div>
+            <div><dt>Weight</dt><dd>${fmt(p.animalWeight)} ${diff != null ? `<span class="delta">(${diff > 0 ? '+' : ''}${fmt(diff)} vs goal)</span>` : ''}</dd></div>
+            <div><dt>Target</dt><dd>${fmt(p.targetWeight)}</dd></div>
+            <div style="grid-column: 1 / -1"><dt>Last fed</dt><dd>${esc(since(p.lastFed))}</dd></div>
+          </dl>
+          <div class="pet-foot">${feedButton(p, st, i)}</div>
+        </article>`;
+    }).join('')}</div>`;
+  }
+
+  function renderFoods(q) {
+    const el = $('#foods');
+    const list = state.searchResults ?? state.foods;
+    $('#foods-count').textContent = state.foods.length ? `· ${state.foods.length}` : '';
+    if (!list.length) {
+      el.innerHTML = q
+        ? `<div class="empty"><div class="big">🔍</div><p>Nothing in the pantry matches “${esc(q)}”.</p></div>`
+        : `<div class="empty"><div class="big">🥫</div><p>Your pantry is empty. Add the food your pets eat.</p><button class="btn primary" type="button" data-open="food-dialog">+ Add food</button></div>`;
+      return;
+    }
+    el.innerHTML = `<div class="pantry">${list.map((f) => {
+      const fi = state.foods.indexOf(f) >= 0 ? state.foods.indexOf(f) : -1;
+      const lvl = foodLevel(f);
+      const cls = lvl < 0.15 ? 'bad' : lvl < 0.35 ? 'warn' : '';
+      const days = Number(f.dayLeftUntilRefill);
+      const daysHtml = days > 0
+        ? `<div class="n">${days}</div><div class="l">day${days === 1 ? '' : 's'} left</div>`
+        : `<div class="n">—</div><div class="l">no estimate yet</div>`;
+      return `
+        <article class="food">
+          <div>
+            <div class="food-name">${esc(f.productBrand || f.foodName || 'Unnamed food')} <span class="badge muted">${f.wet ? 'Wet' : 'Dry'}</span>
+              ${cls === 'bad' ? '<span class="badge bad">Low</span>' : ''}</div>
+            <div class="food-sub">Bag size ${fmt(f.totalWeight)}${(() => { const e = petsEating(f); return e.length ? ` · Eaten by ${esc(e.join(', '))}` : ''; })()}</div>
+          </div>
+          <div>
+            <div class="bar ${cls}"><span style="width:${(lvl * 100).toFixed(1)}%"></span></div>
+            <div class="bar-label"><span>${fmt(f.currentWeight)} remaining</span><span>${Math.round(lvl * 100)}%</span></div>
+          </div>
+          <div class="days">${daysHtml}</div>
+          <button class="icon-btn" type="button" data-edit-food="${fi}" data-search-index="${list.indexOf(f)}">✏️ Edit</button>
+        </article>`;
+    }).join('')}</div>`;
+  }
+
+  function renderFoodSelect(selected = []) {
+    const names = [...new Set(state.foods.map((f) => f.productBrand || f.foodName).filter(Boolean))];
+    $('#pet-food-picks').innerHTML = names.length
+      ? names.map((n) => `<label><input type="checkbox" name="foodNames" value="${esc(n)}"${selected.includes(n) ? ' checked' : ''}> ${esc(n)}</label>`).join('')
+      : '<span class="none">No foods in the pantry yet — add some first.</span>';
+  }
+
+  function renderStats() {
+    const hungry = state.pets.filter((p) => petStatus(p).hungry).length;
+    const low = state.foods.filter((f) => foodLevel(f) < 0.15).length;
+    $('#st-pets').textContent = state.pets.length;
+    $('#st-hungry').textContent = hungry;
+    $('#st-foods').textContent = state.foods.length;
+    $('#st-low').textContent = low;
+    $('#st-hungry-card').classList.toggle('alert', hungry > 0);
+    $('#st-low-card').classList.toggle('alert', low > 0);
+    $('#greeting-sub').textContent = !state.pets.length
+      ? "Let's get your pets set up."
+      : hungry ? `${hungry} pet${hungry === 1 ? ' still needs' : 's still need'} feeding today.` : 'Everyone has been fed today. 🎉';
+  }
+
+  // ---------- dialogs ----------
+  document.addEventListener('click', (e) => {
+    const open = e.target.closest('[data-open]');
+    if (open) {
+      const d = document.getElementById(open.dataset.open);
+      d.querySelector('form').reset();
+      if (d.id === 'pet-dialog') { setPetMode(null); renderFoodSelect(); }
+      if (d.id === 'food-dialog') setFoodMode(null);
+      d.querySelector('.form-error').textContent = '';
+      d.showModal();
+      d.querySelector('input').focus();
+    }
+    const close = e.target.closest('[data-close]');
+    if (close) close.closest('dialog').close();
+  });
+  document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+
+  const num = (v) => (v === '' || v == null ? 0 : Number(v));
+
+  $('#pet-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target, el = f.elements, btn = f.querySelector('button[type=submit]');
+    const pet = {
+      userId: state.user.id,
+      name: el.name.value.trim(),
+      foodNames: [...f.querySelectorAll('input[name="foodNames"]:checked')].map((c) => c.value),
+      foodWeightPerServing: num(el.foodWeightPerServing.value),
+      servingsPerDay: num(el.servingsPerDay.value),
+      age: num(el.age.value),
+      animalWeight: num(el.animalWeight.value),
+      targetWeight: num(el.targetWeight.value),
+    };
+    pet.foodName = pet.foodNames[0] || null; // kept for the old single-food field
+    if (pet.servingsPerDay < 1) { $('#pet-error').textContent = 'Servings per day must be at least 1.'; return; }
+    btn.disabled = true;
+    try {
+      if (editingPet) {
+        await api.updatePet(state.user.id, editingPet.id, pet);
+        toast(`${pet.name} was updated.`);
+      } else {
+        await api.addPet(state.user.id, pet);
+        toast(`${pet.name} was added.`);
+      }
+      $('#pet-dialog').close();
+      loadPets();
+    } catch (err) {
+      $('#pet-error').textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('#food-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target, el = f.elements, btn = f.querySelector('button[type=submit]');
+    const food = { productBrand: el.productBrand.value.trim(), wet: el.wet.checked, totalWeight: num(el.totalWeight.value) };
+    if (editingFood) food.currentWeight = el.currentWeight.value === '' ? food.totalWeight : num(el.currentWeight.value);
+    btn.disabled = true;
+    try {
+      if (editingFood) {
+        await api.updateFood(state.user.id, editingFood.id, food);
+        toast(`${food.productBrand} was updated.`);
+      } else {
+        await api.addFood(state.user.id, food);
+        toast(`${food.productBrand} was added to the pantry.`);
+      }
+      $('#food-dialog').close();
+      $('#food-search').value = '';
+      loadFoods();
+    } catch (err) {
+      $('#food-error').textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- editing ----------
+  let editingPet = null, editingFood = null;
+
+  function setPetMode(pet) {
+    editingPet = pet;
+    $('#pet-title').textContent = pet ? `Edit ${pet.name || 'pet'}` : 'Add a pet';
+    $('#pet-submit').textContent = pet ? 'Save changes' : 'Add pet';
+  }
+  function setFoodMode(food) {
+    editingFood = food;
+    $('#food-title').textContent = food ? `Edit ${food.productBrand || 'food'}` : 'Add food to the pantry';
+    $('#food-submit').textContent = food ? 'Save changes' : 'Add food';
+    $('#food-remaining-field').hidden = !food;
+  }
+
+  document.addEventListener('click', (e) => {
+    const pb = e.target.closest('[data-edit-pet]');
+    if (pb) {
+      const p = state.pets[Number(pb.dataset.editPet)];
+      const d = $('#pet-dialog'), el = $('#pet-form').elements;
+      $('#pet-form').reset();
+      $('#pet-error').textContent = '';
+      setPetMode(p);
+      el.name.value = p.name ?? '';
+      renderFoodSelect(petFoodNames(p));
+      el.foodWeightPerServing.value = p.foodWeightPerServing ?? '';
+      el.servingsPerDay.value = p.servingsPerDay ?? '';
+      el.age.value = p.age ?? '';
+      el.animalWeight.value = p.animalWeight ?? '';
+      el.targetWeight.value = p.targetWeight ?? '';
+      d.showModal();
+      el.name.focus();
+      return;
+    }
+    const fb = e.target.closest('[data-edit-food]');
+    if (fb) {
+      const list = state.searchResults ?? state.foods;
+      const f = list[Number(fb.dataset.searchIndex)];
+      const d = $('#food-dialog'), el = $('#food-form').elements;
+      $('#food-form').reset();
+      $('#food-error').textContent = '';
+      setFoodMode(f);
+      el.productBrand.value = f.productBrand ?? f.foodName ?? '';
+      el.totalWeight.value = f.totalWeight ?? '';
+      el.currentWeight.value = f.currentWeight ?? '';
+      el.wet.checked = !!f.wet;
+      d.showModal();
+      el.productBrand.focus();
+    }
+  });
+
+  // ---------- start ----------
+  if (session.get()) enterApp(); else showAuth();
+})();
+</script>
+</body>
+</html>
